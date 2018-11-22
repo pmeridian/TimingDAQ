@@ -757,7 +757,8 @@ void DatAnalyzer::RunEventsLoop() {
         else if( i_evt >= start_evt && corruption == 0) {
           Analyze();
           N_written_evts++;
-          tree->Fill();
+	  if (tree)
+	    tree->Fill();
         }
         else {
           cout << i_evt << endl;
@@ -777,7 +778,8 @@ void DatAnalyzer::RunEventsLoop() {
         Analyze();
 
         N_written_evts++;
-        tree->Fill();
+	if (tree)
+	  tree->Fill();
         if(N_written_evts%evt_progress_print_rate == 0) {
           //cout << "!!!!!!!!!!!!!!!!! Event : " << N_written_evts << endl;
         }
@@ -785,7 +787,8 @@ void DatAnalyzer::RunEventsLoop() {
     }
 
     if ( bin_file != NULL ) fclose(bin_file);
-    cout << "\nLoaded total of " << tree->GetEntries() << " (" << i_evt << ") events\n";
+    if (tree)
+      cout << "\nLoaded total of " << tree->GetEntries() << " (" << i_evt << ") events\n";
 
 
     if(N_evt_expected>0 && N_evt_expected!=i_evt && N_evts == 0) {
