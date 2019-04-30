@@ -5,6 +5,20 @@
 
 using namespace std;
 
+static_assert(sizeof(unsigned int) == sizeof(float));
+
+unsigned int castFloatToUInt(float f) {
+  union { float f; unsigned int i; } u;
+  u.f = f;
+  return u.i;
+}
+
+float castUIntToFloat(unsigned int i) {
+  union { float f; unsigned int i; } u;
+  u.i = i;
+  return u.f;
+}
+
 void H4Analyzer::H4Event::createOutBranches (TTree* tree,treeStructData& treeData)
 {
   //Instantiate the tree branches
@@ -53,13 +67,6 @@ void H4Analyzer::H4Event::createOutBranches (TTree* tree,treeStructData& treeDat
   tree->Branch("nTriggerWords"	,&treeData.nTriggerWords,"nTriggerWords/i");
   tree->Branch("triggerWords"	,treeData.triggerWords,"triggerWords[nTriggerWords]/i");
   tree->Branch("triggerWordsBoard",treeData.triggerWordsBoard,"triggerWordsBoard[nTriggerWords]/i");
-
-  tree->Branch("nTracks"	,&treeData.ntracks , "nTracks/i");
-  tree->Branch("trackX"	,&treeData.xIntercept , "trackX/F");
-  tree->Branch("trackY"	,&treeData.yIntercept , "trackY/F");
-  tree->Branch("trackXSlope"	,&treeData.xSlope , "trackXSlope/F");
-  tree->Branch("trackYSlope"	,&treeData.ySlope , "trackYSlope/F");
-  tree->Branch("trackChi2"	,&treeData.chi2 , "trackChi2/F");
 
   return ;
 } 
@@ -175,13 +182,6 @@ void H4Analyzer::H4Event::fillTreeData (treeStructData & treeData)
       treeData.triggerWords[i] 		= triggerWords[i].triggerWord ;
       treeData.triggerWordsBoard[i] 	= triggerWords[i].board ;
     }
-
-  treeData.ntracks = track.ntracks;
-  treeData.chi2 = track.chi2;
-  treeData.xSlope = track.xSlope;
-  treeData.ySlope = track.ySlope;
-  treeData.xIntercept = track.xIntercept;
-  treeData.yIntercept = track.yIntercept;
 
   return ;
 }
@@ -648,13 +648,28 @@ void H4Analyzer::Analyze(){
   timeStamp.time=pixel_event->timestamp;
   event_->evtTimes.push_back(timeStamp);
 
-  event_->track.ntracks=ntracks;
-  event_->track.chi2=chi2;
-  event_->track.xSlope=xSlope;
-  event_->track.ySlope=ySlope;
-  event_->track.xIntercept=xIntercept;
-  event_->track.yIntercept=yIntercept;
 
+  //encode tracks into an adcBoard....
+  adcData trackData;
+  trackData.board=1;
+  trackData.channel=1; //ch1 ntracks
+  trackData.adcReadout=ntracks;
+  event_->adcValues.push_back(trackData);
+  trackData.channel=2; //ch2 chi2
+  trackData.adcReadout=castFloatToUInt(chi2);
+  event_->adcValues.push_back(trackData);
+  trackData.channel=3; //ch3 x
+  trackData.adcReadout=castFloatToUInt(xIntercept);
+  event_->adcValues.push_back(trackData);
+  trackData.channel=4; //ch4 y
+  trackData.adcReadout=castFloatToUInt(yIntercept);
+  event_->adcValues.push_back(trackData);
+  trackData.channel=5; //ch5 xSlope
+  trackData.adcReadout=castFloatToUInt(xSlope);
+  event_->adcValues.push_back(trackData);
+  trackData.channel=6; //ch6 ySlope
+  trackData.adcReadout=castFloatToUInt(ySlope);
+  event_->adcValues.push_back(trackData);
 
   for (int ich=0;ich<36;++ich)
     for (int isample=0;isample<1024;++isample)

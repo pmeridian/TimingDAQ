@@ -7,6 +7,7 @@ def GetCommandLineArgs():
     p.add_argument('-R', '--runs', type=int, nargs='+', help='List of runs to be processed. If two runs are given: if the order is increasing all the runs in the middle are processed as well, otherwise not.')
 
     p.add_argument('--data_dir', default='../data')
+    p.add_argument('--out_dir', default='../data')
     p.add_argument('--vVME', default=None, help='Version of the config. Something like vXX (v1, vf1, ...) and has to have a corresponded config file in the config directory (config/config_dir/VME_vXX.config).\n If not given no VME is run.')
     p.add_argument('--vNetScope', default=None, help='Version of the config. Something like vXX (v1, vf1, ...) and has to have a corresponded config file in the config directory (config/config_dir/NetScope_vXX.config).\n If not given no NetScope is run.')
 
@@ -36,6 +37,10 @@ if __name__ == '__main__':
     if not data_dir.endswith('/'):
         data_dir += '/'
 
+    out_dir = args.out_dir
+    if not out_dir.endswith('/'):
+        out_dir += '/'
+
     code_dir = args.code_dir
     if not code_dir.endswith('/'):
         code_dir += '/'
@@ -49,7 +54,7 @@ if __name__ == '__main__':
     if not args.vVME == None:
         print 'Processing VME'
 
-        output_dir = data_dir + 'VME/RECO/' + args.vVME
+        output_dir = out_dir + '/DataTree/'
         if not os.path.isdir(output_dir):
             print 'Creating the output directory ', output_dir
             os.mkdir(output_dir)
@@ -70,35 +75,41 @@ if __name__ == '__main__':
                 else:
                     print '[WARNING] NO NimPlus file present: ' + NimPlus_file
 
-            raw_filename = data_dir + 'VME/RAW/RawDataVMETiming_Run{}.dat'.format(run)
-            if not os.path.exists(raw_filename):
-                print '\nCreating the VME file: ', raw_filename
+#            raw_filename = data_dir + 'VME/RawDataSaver0CMSVMETiming_Run{}_*_Raw.dat'.format(run)
+#            if not os.path.exists(raw_filename):
+#                print '\nChecking VME file: ', raw_filename
 
-                matched_files = glob.glob('{}/RawDataSaver0CMSVMETiming_Run{}_*_Raw.dat'.format(data_dir + 'VME/RAW', run))
+            matched_files = glob.glob('{}/RawDataSaver0CMSVMETiming_Run{}_*_Raw.dat'.format(data_dir + 'VME', run))
 
-                if len(matched_files) == 0:
-                    sys.exit('[ERROR] Unable to find files like: ' +  '{}/RawDataSaver0CMSVMETiming_Run{}_*_Raw.dat'.format(data_dir + 'VME/RAW', run))
-                elif len(matched_files) > 1:
-                    cmd = 'cat ' + ' '.join(matched_files) + ' > ' +raw_filename
-                    # print cmd
-                    subprocess.call(cmd, shell=True)
-                    for f in matched_files:
-                        os.remove(f)
-                else:
-                    cmd = 'mv '+ matched_files[0] + ' ' + raw_filename
-                    subprocess.call(cmd, shell=True)
+            if len(matched_files) == 0:
+                sys.exit('[ERROR] Unable to find files like: ' +  '{}/RawDataSaver0CMSVMETiming_Run{}_*_Raw.dat'.format(data_dir + 'VME', run))
+#                elif len(matched_files) > 1:
+#                    cmd = 'cat ' + ' '.join(matched_files) + ' > ' +raw_filename
+#                    # print cmd
+#                    subprocess.call(cmd, shell=True)
+#                    for f in matched_files:
+#                        os.remove(f)
             else:
+                raw_filename=matched_files[0]
                 print '\nVME file found: ', raw_filename
+            #                    cmd = 'mv '+ matched_files[0] + ' ' + raw_filename
+            #                    subprocess.call(cmd, shell=True)
 
-            root_filename = output_dir + '/DataVMETiming_Run{}.root'.format(run)
+                
+
+            root_filename = output_dir + '{}/1.root'.format(run)
             if args.no_Dat2Root:
                 print '[INFO] No Dat2Root flag active'
                 continue
             if os.path.exists(root_filename) and not args.force:
                 print root_filename, 'already present'
                 continue
+            else:
+                cmd = 'mkdir -p '+ output_dir + '/' + str(run)
+                subprocess.call(cmd, shell=True)
 
-            cmd_Dat2Root = code_dir + 'VMEDat2Root'
+
+            cmd_Dat2Root = code_dir + 'H4Dat2Root'
             cmd_Dat2Root += ' --input_file=' + raw_filename
             cmd_Dat2Root += ' --config=' + code_dir + 'config/' + args.config_dir + 'VME_{}.config'.format(args.vVME)
             if args.draw_debug_pulses:

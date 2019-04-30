@@ -81,13 +81,6 @@ public:
     unsigned int nTriggerWords;
     unsigned int triggerWords[MAX_TRIG_WORDS] ;
     unsigned int triggerWordsBoard[MAX_TRIG_WORDS] ;
-
-    float         xIntercept;
-    float         yIntercept;
-    float         xSlope;
-    float         ySlope;
-    float         chi2;
-    int           ntracks;
   } ;
 
   struct adcData
@@ -148,16 +141,6 @@ public:
     unsigned int evtNumber;
   };
 
-  struct fnal_track_reco
-  {
-    float         xIntercept;
-    float         yIntercept;
-    float         xSlope;
-    float         ySlope;
-    float         chi2;
-    int           ntracks;
-  };
-
   struct H4Event
   {
     H4Event (TFile * outFile, TTree * outTree) :
@@ -182,8 +165,6 @@ public:
     unsigned int 		evtTimeStart ;
 
     vector<timeData> 	evtTimes ;
-
-    fnal_track_reco       track;
 
     void clear () ;
     void Fill () ;

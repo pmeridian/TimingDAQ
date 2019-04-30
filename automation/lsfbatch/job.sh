@@ -2,15 +2,18 @@
 
 run_number=$1
 config_version=$2
-data_dir=/eos/cms/store/group/phys_susy/razor/FNAL_TB_1811/data
+
+code_dir=/afs/cern.ch/user/m/meridian/work/MTD/MTDTB_FNAL_201811/TimingDAQ/
+data_dir=/eos/cms/store/group/dpg_mtd/comm_mtd/TB/MTDTB_FNAL_Nov2018/raw/
+out_dir=${data_dir}
 
 echo "============= Job for run $1 ===================="
-cd /eos/cms/store/group/phys_susy/razor/FNAL_TB_1811/CMSSW_9_0_2/src
+source /cvmfs/sft.cern.ch/lcg/releases/LCG_94/ROOT/6.14.04/x86_64-slc6-gcc62-opt/ROOT-env.sh
+cd $code_dir
 echo $PWD
-eval `scramv1 runtime -sh`
-cd TimingDAQ
-echo $PWD
+
+ls -ltrh ${data_dir}
 
 logfile=automation/lsfbatch/log/$run_number.log
 
-python automation/DecodeData.py --vVME $config_version --NO_save_meas -R $run_number --data_dir=$data_dir &> $logfile
+python automation/DecodeData.py --vVME $config_version -R $run_number --data_dir=$data_dir --code_dir=$code_dir --out_dir=$out_dir -v

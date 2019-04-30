@@ -939,7 +939,7 @@ void DatAnalyzer::InitLoop() {
     if ( input_file_path.EndsWith(".root") )//place holder for input file in the future.
     {
       std::cout << "Initializing input root file" << std::endl;
-      file_in = new TFile(input_file_path,"READ");
+      file_in = TFile::Open(input_file_path,"READ");
       tree_in = (TTree*)file_in->Get("pulse");
     }
 
